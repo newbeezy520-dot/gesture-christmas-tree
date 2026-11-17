@@ -1,0 +1,17 @@
+{
+  "name": "gesture-christmas-tree",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A photo-free hand-gesture Christmas particle experience with music and a shared-heart achievement.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "start": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser-smoke.mjs && node tests/heart-browser.mjs && node tests/wave-browser.mjs"
+  }
+}

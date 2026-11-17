@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071c18">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:; connect-src 'self' data: blob:; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'">
+  <meta name="description" content="用手势展开一棵粒子圣诞树，发现相册、音乐与双手比心成就。">
+  <title>Gesture Christmas Tree · Un Noël à nous</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css?v=wave-gallery">
+</head>
+<body>
+  <main class="experience" id="experience" data-mode="tree">
+    <canvas id="particles" aria-label="可以用手势控制的圣诞树粒子动画"></canvas>
+    <header class="masthead">
+      <a class="signature" href="#" aria-label="回到圣诞树">Noël <span>&</span> nous<i>UN NOËL À NOUS</i></a>
+      <div class="header-actions">
+        <button class="music-toggle" data-music-toggle aria-pressed="false" aria-label="开启背景音乐"><span class="music-symbol" aria-hidden="true">♪</span><span data-music-label>开启音乐</span></button>
+        <button id="helpButton" class="round-button" aria-label="查看玩法" aria-expanded="false">?</button>
+      </div>
+    </header>
+
+    <section class="introduction" aria-label="圣诞寄语">
+      <p class="eyebrow">UN PEU DE MAGIE</p>
+      <h1>Un peu de magie,<br><em>rien que pour toi.</em></h1>
+      <p class="intro-chinese">给你的一点圣诞魔法</p>
+    </section>
+
+    <section class="revelation" id="revelation" aria-hidden="true">
+      <div class="greeting">
+        <p class="eyebrow">JOYEUX NOËL · À NOUS DEUX</p>
+        <h2>Joyeux Noël,<br><em>mon amour.</em></h2>
+        <p class="wish">Que nos mains se retrouvent,<br>Noël après Noël.</p>
+      </div>
+      <div class="album" id="album" aria-label="我们的圣诞相册">
+        <figure class="photo photo-active" data-index="0">
+          <div class="photo-mount"><img src="./samples/card-01.svg" alt="圣诞几何示例插画 01，不含私人照片" draggable="false" decoding="async" fetchpriority="high"></div>
+          <figcaption><span>Étoile.</span><small>NOËL · 01</small></figcaption>
+        </figure>
+        <figure class="photo photo-next" data-index="1">
+          <div class="photo-mount"><img src="./samples/card-02.svg" alt="圣诞几何示例插画 02，不含私人照片" draggable="false" decoding="async" loading="lazy"></div>
+          <figcaption><span>Lumière.</span><small>NOËL · 02</small></figcaption>
+        </figure>
+        <figure class="photo photo-parked" data-index="2" hidden>
+          <div class="photo-mount"><img src="./samples/card-03.svg" alt="圣诞几何示例插画 03，不含私人照片" draggable="false" decoding="async" loading="lazy"></div>
+          <figcaption><span>Neige.</span><small>NOËL · 03</small></figcaption>
+        </figure>
+        <figure class="photo photo-parked" data-index="3" hidden>
+          <div class="photo-mount"><img src="./samples/card-04.svg" alt="圣诞几何示例插画 04，不含私人照片" draggable="false" decoding="async" loading="lazy"></div>
+          <figcaption><span>Minuit.</span><small>NOËL · 04</small></figcaption>
+        </figure>
+        <figure class="photo photo-previous" data-index="4">
+          <div class="photo-mount"><img src="./samples/card-05.svg" alt="圣诞几何示例插画 05，不含私人照片" draggable="false" decoding="async" loading="lazy"></div>
+          <figcaption><span>Ensemble.</span><small>NOËL · 05</small></figcaption>
+        </figure>
+        <div class="album-navigation">
+          <button id="previousPhoto" aria-label="上一张照片">←</button>
+          <span id="photoCounter" aria-live="polite">01 / 05</span>
+          <button id="nextPhoto" aria-label="下一张照片">→</button>
+        </div>
+        <p class="wave-hint" id="waveHint">开启手势后，左挥下一张，右挥上一张。</p>
+      </div>
+    </section>
+
+    <aside class="camera-preview" id="cameraPreview" hidden>
+      <video id="camera" autoplay muted playsinline webkit-playsinline></video>
+      <span id="cameraTag">寻找你的手</span>
+      <button id="stopCamera" aria-label="关闭摄像头">×</button>
+    </aside>
+
+    <section class="controls" aria-label="互动控制">
+      <div id="heartProgress" class="heart-progress" hidden>
+        <span>♡ 爱心对上了，保持一下…</span>
+        <i role="progressbar" aria-label="双人比心识别进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b></b></i>
+      </div>
+      <p class="live-status" id="status" role="status">捏合，让这一棵树说出藏着的话。</p>
+      <button id="cameraButton" class="camera-button"><span class="camera-icon" aria-hidden="true"></span><span id="cameraButtonText">开启手势魔法</span><b aria-hidden="true">↗</b></button>
+      <p class="privacy" id="privacy">摄像头仅在本机识别，不录制、不上传。</p>
+      <div class="gesture-buttons" role="group" aria-label="也可以直接点击体验">
+        <button data-action="tree" aria-pressed="true"><span aria-hidden="true">✧</span>收拢 · 成树</button>
+        <button data-action="burst" aria-pressed="false"><span aria-hidden="true">✦</span>捏合 · 揭晓</button>
+        <button data-action="scatter" aria-pressed="false"><span aria-hidden="true">⁙</span>张掌 · 飞散</button>
+        <button id="heartButton" aria-label="触屏预览双人比心百日成就"><span aria-hidden="true">♡</span>比心 · 百日</button>
+      </div>
+      <p class="touch-hint">不方便开摄像头？直接点上面的按钮也可以。</p>
+    </section>
+
+    <aside class="instructions" id="instructions" hidden>
+      <button id="closeHelp" class="close-help" aria-label="关闭玩法说明">×</button>
+      <p class="eyebrow">LA PETITE NOTICE</p>
+      <h3>把手交给这棵树。</h3>
+      <ol>
+        <li><strong>捏合拇指与食指</strong><span>粒子炸开，照片与圣诞祝福出现。</span></li>
+        <li><strong>张开手掌，轻轻移动</strong><span>粒子跟着你的手飞散。</span></li>
+        <li><strong>自然收拢或握拳</strong><span>粒子重新组成圣诞树。</span></li>
+        <li><strong>两人各伸一只手，合成一颗心</strong><span>食指尖在上、拇指尖在下，分别在中间相接。完整入镜并保持片刻，点亮我们的百日纪念。</span></li>
+      </ol>
+      <p class="help-note">挥手切图时，镜头里只留一只张开的手：向左挥看下一张，向右挥看上一张；每次挥动后稍停，再挥下一次。保持整只手完整入镜、光线充足。双人比心时再把两只手都留在画面中。音乐可在右上角手动开关；不便开摄像头时，可使用按钮。</p>
+      <button class="help-done" id="helpDone">好，开始吧</button>
+    </aside>
+    <p class="dedication" aria-hidden="true">A little Christmas, made for us.</p>
+    <dialog id="centenary" class="centenary" aria-labelledby="centenaryTitle">
+      <canvas id="centenaryCanvas" aria-hidden="true"></canvas>
+      <article class="centenary-card">
+        <button class="centenary-close" id="closeCentenary" aria-label="关闭百日纪念">×</button>
+        <p class="centenary-eyebrow" id="centenaryOrigin">LE CŒUR À DEUX · 双人爱心达成</p>
+        <h2 id="centenaryTitle">恭喜解锁100天成就</h2>
+        <div class="centenary-seal" id="centenarySeal" aria-label="100天成就">
+          <span class="seal-heart" aria-hidden="true">♡</span>
+          <strong>100</strong><span class="seal-subtitle">JOURS À DEUX</span>
+        </div>
+        <p class="centenary-french">Cent jours, un même cœur.</p>
+        <p class="centenary-dates">OUR STORY <span>·</span> DAY 001 — 100</p>
+        <p class="centenary-note">这颗爱心，由我们一起完成。</p>
+        <button class="centenary-continue" id="continuePhotos">继续看我们的照片 <span aria-hidden="true">→</span></button>
+        <button class="centenary-music" data-music-toggle aria-pressed="false" aria-label="开启背景音乐"><span aria-hidden="true">♪</span> <span data-music-label>开启音乐</span></button>
+      </article>
+    </dialog>
+  </main>
+  <script type="module" src="./app.js?v=wave-gallery"></script>
+</body>
+</html>
